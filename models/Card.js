@@ -1,3 +1,4 @@
+// MORAŠ DOBRO NAUČIT ČA JE MONGOOSE I ZAŠTO GA KORISTIŠ, POŠTO TO NISMO KORISTILI U SKLOPU KOLEGIJA
 const mongoose = require('mongoose');
 
 const CardSchema = new mongoose.Schema({
