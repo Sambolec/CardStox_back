@@ -1,3 +1,6 @@
+// moraš dobro znat zašto imaš rute /api/nešto, a ne samo /nešto jer bi te to moga pitat
+// to je indikator da se radi o backend ruti
+// omogućava verzioniranje ruta bez da brišeš stvari van
 const express = require('express');
 const cors = require('cors');
 const { connectToDatabase } = require('./db.js');
@@ -84,7 +87,7 @@ app.post('/api/login', async (req, res) => {
 
     const token = jwt.sign(
       { userId: user._id.toString(), username: user.username },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.JWT_SECRET || 'your_jwt_secret', // ovaj || i ovo nakon njega moreš maknut van; ovo je hardkodiranje jwt ključa..a big no no
       { expiresIn: '1d' }
     );
 
