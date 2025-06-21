@@ -54,8 +54,7 @@ app.post('/api/register', async (req, res) => {
       password: hashedPassword,
       createdAt: new Date(),
       wishlist: [],
-      bought: [],
-      sold: []
+      bought: []
     });
 
     res.status(201).json({ message: 'User registered successfully' });
@@ -98,7 +97,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// User Profile Endpoint
+// User Profile Endpoint (no sold logic)
 app.get('/api/profile', authenticateToken, async (req, res) => {
   try {
     const userId = new ObjectId(req.user.userId);
@@ -112,22 +111,19 @@ app.get('/api/profile', authenticateToken, async (req, res) => {
       return await db.collection('cards').find({ _id: { $in: ids } }).toArray();
     }
 
-    const [wishlist, bought, sold] = await Promise.all([
+    const [wishlist, bought] = await Promise.all([
       fetchCards(toObjectIds(user.wishlist)),
-      fetchCards(toObjectIds(user.bought)),
-      fetchCards(toObjectIds(user.sold))
+      fetchCards(toObjectIds(user.bought))
     ]);
 
-    // Calculate stats (sum price of bought and sold)
-    const totalValue = [...bought, ...sold].reduce((sum, card) => sum + (parseFloat(card.price) || 0), 0);
+    const totalValue = bought.reduce((sum, card) => sum + (parseFloat(card.price) || 0), 0);
 
     res.json({
       username: user.username,
       email: user.email,
       wishlist,
       bought,
-      sold,
-      totalCards: bought.length + sold.length,
+      totalCards: bought.length,
       totalValue: totalValue,
       memberSince: user.createdAt ? user.createdAt.getFullYear() : new Date().getFullYear()
     });
@@ -140,7 +136,7 @@ app.get('/api/profile', authenticateToken, async (req, res) => {
 app.post('/api/buy/:cardId', authenticateToken, async (req, res) => {
   try {
     const userId = new ObjectId(req.user.userId);
-    const cardId = req.params.cardId;
+    const cardId = req.params.cardId.toString();
 
     // Validate card exists
     const card = await db.collection('cards').findOne({ _id: new ObjectId(cardId) });
@@ -160,18 +156,18 @@ app.post('/api/buy/:cardId', authenticateToken, async (req, res) => {
   }
 });
 
-// Sell Card Endpoint (moves from bought to sold)
+// Sell Card Endpoint (removes from bought, makes card available again)
 app.post('/api/sell/:cardId', authenticateToken, async (req, res) => {
   try {
     const userId = new ObjectId(req.user.userId);
-    const cardId = req.params.cardId;
+    const cardId = req.params.cardId.toString();
 
-    // Remove from bought, add to sold
+    // Remove from bought (no sold logic)
     await db.collection('users').updateOne(
       { _id: userId },
-      { $pull: { bought: cardId }, $addToSet: { sold: cardId } }
+      { $pull: { bought: cardId } }
     );
-    res.json({ message: 'Card sold and moved to sold cards' });
+    res.json({ message: 'Card sold and moved back to marketplace' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to sell card' });
   }
@@ -181,7 +177,7 @@ app.post('/api/sell/:cardId', authenticateToken, async (req, res) => {
 app.post('/api/wishlist/:cardId', authenticateToken, async (req, res) => {
   try {
     const userId = new ObjectId(req.user.userId);
-    const cardId = req.params.cardId;
+    const cardId = req.params.cardId.toString();
 
     // Validate card exists
     const card = await db.collection('cards').findOne({ _id: new ObjectId(cardId) });
@@ -205,7 +201,7 @@ app.post('/api/wishlist/:cardId', authenticateToken, async (req, res) => {
 app.delete('/api/wishlist/:cardId', authenticateToken, async (req, res) => {
   try {
     const userId = new ObjectId(req.user.userId);
-    const cardId = req.params.cardId;
+    const cardId = req.params.cardId.toString();
 
     await db.collection('users').updateOne(
       { _id: userId },
@@ -221,13 +217,10 @@ app.delete('/api/wishlist/:cardId', authenticateToken, async (req, res) => {
 // GET all cards (for home page, only cards NOT bought by any user)
 app.get('/api/cards', async (req, res) => {
   try {
-    // Get all bought and sold card IDs from all users
     const users = await db.collection('users').find({}).toArray();
     const boughtIds = users.flatMap(u => u.bought || []);
-    const soldIds = users.flatMap(u => u.sold || []);
-    const removedIds = [...boughtIds, ...soldIds];
     const unsoldCards = await db.collection('cards').find({
-      _id: { $nin: removedIds.map(id => new ObjectId(id)) }
+      _id: { $nin: boughtIds.map(id => new ObjectId(id)) }
     }).toArray();
     res.json(unsoldCards);
   } catch (err) {
