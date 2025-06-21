@@ -3,6 +3,8 @@ const Card = require('../models/Card');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
+// ovo je sve ok
+
 router.get('/', async (req, res) => {
   const cards = await Card.find();
   res.json(cards);
