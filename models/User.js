@@ -1,3 +1,4 @@
+// OK...moreš pustit i mongoose, ali moraš znat zašto ga koristiš
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
