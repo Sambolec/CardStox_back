@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // ok, ali moraš znat zašto koristiš models...to su fajlovi za svaku tablicu u bazi
+const User = require('../models/User');
 const router = express.Router();
 
 router.post('/signup', async (req, res) => {

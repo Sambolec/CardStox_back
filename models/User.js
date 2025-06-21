@@ -1,11 +1,13 @@
-// OK...moreš pustit i mongoose, ali moraš znat zašto ga koristiš
-const mongoose = require('mongoose');
+const User = {
+  schema: {
+    username: String,
+    email: String,
+    password: String,
+    createdAt: Date,
+    wishlist: [String],
+    bought: [String],
+    sold: [String]
+  }
+};
 
-const UserSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  roles: { type: [String], default: ['user'] }
-});
-
-module.exports = mongoose.model('User', UserSchema);
+module.exports = User;

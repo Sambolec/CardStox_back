@@ -7,15 +7,10 @@ const dbName = process.env.MONGO_DB_NAME;
 
 let db = null;
 
-// ne spaja se na mongo; vjv krivi mongo uri u .env
 async function connectToDatabase() {
   if (db) return db;
   try {
-    const client = new MongoClient(mongoURI, {
-  tls: true,
-  tlsAllowInvalidCertificates: true, 
-});
-
+    const client = new MongoClient(mongoURI);
     await client.connect();
     console.log('Connected to MongoDB');
     db = client.db(dbName);
