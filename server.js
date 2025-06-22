@@ -97,7 +97,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// User Profile Endpoint (no sold logic)
+// User Profile Endpoint 
 app.get('/api/profile', authenticateToken, async (req, res) => {
   try {
     const userId = new ObjectId(req.user.userId);
@@ -162,7 +162,7 @@ app.post('/api/sell/:cardId', authenticateToken, async (req, res) => {
     const userId = new ObjectId(req.user.userId);
     const cardId = req.params.cardId.toString();
 
-    // Remove from bought (no sold logic)
+    // Remove from bought 
     await db.collection('users').updateOne(
       { _id: userId },
       { $pull: { bought: cardId } }
@@ -214,7 +214,7 @@ app.delete('/api/wishlist/:cardId', authenticateToken, async (req, res) => {
   }
 });
 
-// GET all cards (for home page, only cards NOT bought by any user)
+// GET all cards 
 app.get('/api/cards', async (req, res) => {
   try {
     const users = await db.collection('users').find({}).toArray();
